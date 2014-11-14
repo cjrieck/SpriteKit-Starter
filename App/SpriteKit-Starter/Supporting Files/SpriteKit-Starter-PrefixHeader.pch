@@ -1,0 +1,16 @@
+//
+//  SpriteKit-Starter-PrefixHeader.pch
+//  SpriteKit-Starter
+//
+//  Created by Clayton Rieck on 11/14/14.
+//  Copyright (c) 2014 Clayton Rieck. All rights reserved.
+//
+
+#ifndef SpriteKit_Starter_SpriteKit_Starter_PrefixHeader_pch
+#define SpriteKit_Starter_SpriteKit_Starter_PrefixHeader_pch
+
+@import UIKit;
+@import Foundation;
+@import SpriteKit;
+
+#endif
