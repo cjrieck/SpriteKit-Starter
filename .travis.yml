@@ -1,0 +1,8 @@
+language: objective-c
+xcode_project: App/SpriteKit-Starter.xcodeproj
+xcode_scheme: SpriteKit-Starter
+xcode_sdk: iphonesimulator
+
+before_install:
+    - brew update
+    - if brew outdated | grep -qx xctool; then brew upgrade xctool; fi
