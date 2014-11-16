@@ -84,6 +84,33 @@ static inline CGPoint rwNormalize(CGPoint a)
     [monsterNode runAction:[SKAction sequence:@[moveAction, moveDoneAction]]];
 }
 
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint location = [touch locationInNode:self];
+    
+    SKSpriteNode *projectile = [SKSpriteNode spriteNodeWithColor:[UIColor blueColor] size:CGSizeMake(5.0, 5.0)];
+    projectile.position = self.heroSprite.position;
+    
+    // Offset of location to projectile
+    CGPoint offset = rwSub(location, projectile.position);
+    
+    if ( offset.x <= 0 ) {
+        return;
+    }
+    [self addChild:projectile];
+    
+    CGPoint direction = rwNormalize(offset);
+    CGPoint shootAmount = rwMult(direction, 1000);
+    CGPoint realDestination = rwAdd(shootAmount, projectile.position);
+    
+    float velocity = 480.0/1.0;
+    float realMoveDuration = self.size.width / velocity;
+    SKAction * actionMove = [SKAction moveTo:realDestination duration:realMoveDuration];
+    SKAction * actionMoveDone = [SKAction removeFromParent];
+    [projectile runAction:[SKAction sequence:@[actionMove, actionMoveDone]]];
+}
+
 - (void)updateWithTimeSinceLastUpdate:(CFTimeInterval)timeSinceLast
 {
     self.lastSpawnInterval += timeSinceLast;
