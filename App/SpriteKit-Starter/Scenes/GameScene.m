@@ -34,7 +34,10 @@ static inline CGPoint rwNormalize(CGPoint a)
     return CGPointMake(a.x / length, a.y / length);
 }
 
-@interface GameScene ()
+static const uint32_t kSSProjectileCategory = 0x1 << 0;
+static const uint32_t kSSMonsterCategory = 0x1 << 1;
+
+@interface GameScene () <SKPhysicsContactDelegate>
 
 @property (strong, nonatomic) SKSpriteNode *heroSprite;
 
@@ -51,6 +54,9 @@ static inline CGPoint rwNormalize(CGPoint a)
     if ( self ) {
         self.backgroundColor = [UIColor whiteColor];
         
+        self.physicsWorld.gravity = CGVectorMake(0, 0);
+        self.physicsWorld.contactDelegate = self;
+        
         _heroSprite = [[SKSpriteNode alloc] initWithImageNamed:@"Hero"];
         _heroSprite.xScale = 0.2;
         _heroSprite.yScale = 0.2;
@@ -65,6 +71,12 @@ static inline CGPoint rwNormalize(CGPoint a)
     SKSpriteNode *monsterNode = [SKSpriteNode spriteNodeWithImageNamed:@"Orange-Monster"];
     monsterNode.xScale = 0.1;
     monsterNode.yScale = 0.1;
+    
+    monsterNode.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:monsterNode.size];
+    monsterNode.physicsBody.dynamic = YES;
+    monsterNode.physicsBody.categoryBitMask = kSSMonsterCategory;
+    monsterNode.physicsBody.contactTestBitMask = kSSProjectileCategory;
+    monsterNode.physicsBody.collisionBitMask = 0;
     
     int minY = monsterNode.size.height / 2.0f;
     int maxY = self.frame.size.height - minY;
@@ -98,6 +110,14 @@ static inline CGPoint rwNormalize(CGPoint a)
     if ( offset.x <= 0 ) {
         return;
     }
+    
+    projectile.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:projectile.size];
+    projectile.physicsBody.dynamic = YES;
+    projectile.physicsBody.categoryBitMask = kSSProjectileCategory;
+    projectile.physicsBody.contactTestBitMask = kSSMonsterCategory;
+    projectile.physicsBody.collisionBitMask = 0;
+    projectile.physicsBody.usesPreciseCollisionDetection = YES;
+    
     [self addChild:projectile];
     
     CGPoint direction = rwNormalize(offset);
@@ -130,6 +150,33 @@ static inline CGPoint rwNormalize(CGPoint a)
     }
     [self updateWithTimeSinceLastUpdate:timeSinceLast];
     
+}
+
+- (void)projectile:(SKNode *)projectile didCollideWithMonster:(SKNode *)monster
+{
+    [projectile removeFromParent];
+    [monster removeFromParent];
+}
+
+#pragma mark - PhysicsContact delegate
+
+- (void)didBeginContact:(SKPhysicsContact *)contact
+{
+    SKPhysicsBody *firstBody;
+    SKPhysicsBody *secondBody;
+    
+    if ( contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask ) {
+        firstBody = contact.bodyA;
+        secondBody = contact.bodyB;
+    }
+    else {
+        firstBody = contact.bodyB;
+        secondBody = contact.bodyA;
+    }
+    
+    if ( (firstBody.categoryBitMask & kSSProjectileCategory) != 0 && (secondBody.categoryBitMask & kSSMonsterCategory) != 0 ) {
+        [self projectile:firstBody.node didCollideWithMonster:secondBody.node];
+    }
 }
 
 @end
